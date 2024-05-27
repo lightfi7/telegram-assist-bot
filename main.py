@@ -3,6 +3,8 @@ import os
 import re
 import threading
 import time
+import random
+import string
 from datetime import datetime, timedelta
 
 import telebot
@@ -23,8 +25,6 @@ def obfuscate_email(email):
     return masked_email  # Return the original email if it doesn't match the pattern
 
 
-import random
-import string
 
 
 def generate_random_email():
@@ -68,15 +68,14 @@ def echo_message(message):
 def send_notification():
     while True:
         today = datetime.now()
-        yesterday = today - timedelta(hours=1)
+        yesterday = today - timedelta(hours=6)
         pipeline = [
             {
                 "$match": {
                     "type": "withdraw",
                     "status": "COMPLETED",
-                    "date_field": {
+                    "updatedAt": {
                         "$gte": yesterday,
-                        "$lte": today
                     }
                 }
             },
@@ -89,7 +88,6 @@ def send_notification():
                 }
             },
             {"$unwind": "$user"},
-            {"$limit": 10}
         ]
         wallet_records = list(db['wallet_records'].aggregate(pipeline))
         reports = f"😍✨Congratulations️🎉\n{yesterday.date()}, {yesterday.hour}:00:00\n{today.date()}, {today.hour}:00:00\n\n👍👍👍👍👍👍👍👍👍👍\n\n🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀\n\n\n"
@@ -101,8 +99,8 @@ def send_notification():
                 random_email = generate_random_email()
                 reports += f"🎁{obfuscate_email(random_email)} 💲{random.randint(32, 100)}\n"
             reports += "\n🙌 https://paibu.org 🙌"
-            print(reports)
-        # bot.send_message(chat_id=GROUP_ID, text=reports)
+            # print(reports)
+        bot.send_message(chat_id=GROUP_ID, text=reports)
         time.sleep(3600)
 
 
